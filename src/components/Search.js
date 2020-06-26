@@ -10,38 +10,12 @@ class Search extends React.Component {
     
     //define properites for the state
         this.state = {
-            query: '',
-            results: {},
-            loading: false,
-            message: '',
+                query: '',
+                results: {},
+                isLoading: false,
+                message: '',
         };
         this.cancel = '';
-    }
-
-    //update the UI
-    render() {
-        //const { query } = this.state;
-        return (
-            <div className="container">
-
-                <h2 className="heading">Brewery Search</h2>
-
-                <label className="search-label" htmlFor="search-input">
-                    <input type="text"
-                           defaultValue=""
-                           id="search-input"
-                           placeholder="Search..."
-                           onChange={this.handleOnInputChange}
-                    />
-
-                    <i className="fa fa-search search-icon"/>
-
-                </label>
-
-                { this.renderSearchResults() }
-
-            </div>
-        )
     }
 
     //sets the query property of state to whatever text the User inputs
@@ -52,7 +26,7 @@ class Search extends React.Component {
                 this.setState({ query, loading: true, message: ''  });
             } else {
                 this.setState({ query, loading: true, message: ''  }, () => {
-                    this.getSearchResults(1, query);
+                    this.getSearchResults(query);
                 });
             }
 
@@ -61,8 +35,8 @@ class Search extends React.Component {
     
     getSearchResults = (query) => {
         
-        const searchUrl = `https://api.openbrewerydb.org/breweries/search?query=${query}`;
-
+        const searchUrl = `localhost:8080`;
+        console.log(searchUrl);
         // prevent multiple API calls
         if (this.cancel) {
             this.cancel.cancel();
@@ -72,41 +46,149 @@ class Search extends React.Component {
 
         axios.get(searchUrl, {cancelToken: this.cancel.token})
 
-            .then((res) => {
-                const resultNotFoundMsg = !res.data.hits.length ? 'No more results' : '';
-        
-            this.setState({
-                    results: res.data.hits,
-                    message: resultNotFoundMsg,
-                    loading: false,
-            });             
-        })
-        .catch((error) => {
+            .then(res => {
 
-            if (axios.isCancel(error) || error) {
-				this.setState({
-					loading: false,
-					message: 'Failed to fetch results',
-                });
-            }       
-        });
+                const resultNotFoundMsg = !res.data.hits.length
+                ? 'There are no more search results. Please try a new search.' : '';
+                
+                    this.setState({
+                        results: res.data.hits,
+                        message: resultNotFoundMsg,
+                        isLoading: false,
+                    });
+            })
+            .catch(error => {
+
+                if (axios.isCancel(error) || error) {
+                    this.setState({
+                        isLoading: false,
+                        message: 'Failed to fetch results',
+                    });
+                }       
+            });
     };
-    
+
+
     renderSearchResults = () => {
-        const {results} = this.state;
+        const { results } = this.state;
+        console.log(results);
+
 
         if (Object.keys(results).length && results.length) {
             return (
                 <div className="results-container">
-                    {results.map((result) => {
+                    { results.map( result => {
                         return (
-                           
+                            <div className="brewery" key={result.id}>
+                                <div className="details">
+                                    <p>{result.id}</p>
+                                    <p>{result.name}</p>
+                                    <p>{result.street}</p>
+                                    <p>{result.city}</p>
+                                    <p>{result.state}</p>
+                                    <p>{result.postal_code}</p>
+                                </div>
+                            </div>
                         );
                     })}
                 </div>
-            )}          
+            )
         }
     };
 
+    //update the UI
+    render() {
+        const { query, message } = this.state;
+        return (
+            <div className="container">
+                {/*	Heading*/}
+                <h2 className="heading">Brewery Search</h2>
+                {/* Search Input*/}
+                <label className="search-label" htmlFor="search-input">
+                    <input type="text"
+                           name="query"
+                           value={ query }
+                           id="search-input"
+                           placeholder="Search..."
+                           onChange={this.handleOnInputChange}
+                    />
 
-export default Search;
+                    <i className="fa fa-search search-icon"/>
+
+                </label>
+
+                {/*	Error Message*/}
+				{message && <p className="message">{ message }</p>}
+
+                {/*Result*/}
+                { this.renderSearchResults() }
+
+            </div>
+        )
+    }
+
+
+
+     // .then(response =>
+            //     response.data.results.map(results => ({
+            //         id: `${results.id}`,
+            //         name: `${results.name}`,
+            //         street: `${results.street}`,
+            //         city: `${results.city}`,
+            //         state: `${results.state}`,
+            //         postal_code: `${results.postal_code}`
+            //     }))
+            // )
+
+
+
+
+
+    
+    // renderSearchResults = () => {
+    //     const {results} = this.state;
+
+    //     if (Object.keys(results).length && results.length) {
+    //         return (
+
+    //             <div className="results-container">
+    //                 {results.map((result) => (
+    //                     return (
+
+    //                         <div key={result.id}>{result.name}</div>
+
+    //                     )                     
+    //                 ))}
+    //             </div>
+                
+    //             // <div>
+    //             //     {props.items.map((item, index) => (
+    //             //         <Item key={index} item={item} />
+    //             //     ))}
+    //             // </div>
+    //             // <div className="results-container">
+    //             //     {results.map((result) => {
+    //             //         return (
+                           
+    //             //         );
+    //             //     })}
+    //             // </div>
+
+    //             // <div className="results-container">
+    //             // {results.map((result) => {
+    //                 // return (
+    //                 //     <a key={result.id} href={result.previewURL} className="result-items">
+    //                 //         <h6 className="image-username">{result.user}</h6>
+    //                 //         <div className="image-wrapper">
+    //                 //             <img className="image" src={result.previewURL} alt={result.user}/>
+    //                 //         </div>
+    //                 //     </a>
+    //                 // );
+    //             // })}
+    //             // </div>
+    //         )}          
+    //     }
+ }
+
+
+export default Search
